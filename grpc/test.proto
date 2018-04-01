@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "github.com/igor-karpukhin/grpc-client-balancing-test/grpc";
+
+message TestResponse {
+	string StrData = 1;
+	int32 IntData = 2;
+	int32 ID = 3;
+}
+
+message TestRequest {
+	int32 ID = 1;
+}
+
+service TestDataProvider {
+	rpc GetTestData(TestRequest) returns (TestResponse);
+}
