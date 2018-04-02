@@ -7,19 +7,21 @@ import (
 	pb "github.com/igor-karpukhin/grpc-client-balancing-test/grpc"
 	"google.golang.org/grpc"
 	"context"
+	"fmt"
 )
 
 type TestServer struct {
 	Data *pb.TestResponse
 }
 
-func (t *TestServer) GetTestData(context.Context, *pb.TestRequest) (*pb.TestResponse, error) {
+func (t *TestServer) GetTestData(ctx context.Context, req *pb.TestRequest) (*pb.TestResponse, error) {
+	fmt.Println("REQ ID:", req.GetID())
 	return t.Data, nil
 }
 
 func main() {
 
-	testServer := TestServer{
+	testServer := &TestServer{
 		Data: &pb.TestResponse{
 			ID: 1,
 			IntData: 100,
@@ -27,14 +29,14 @@ func main() {
 		},
 	}
 
-	addr := flag.String("addr", "0.0.0.0:9090", "Bind addr")
+	addr := flag.String("addr", "127.0.0.1:9090", "Bind addr")
 	flag.Parse()
 
 	listener, err := net.Listen("tcp", *addr)
 	if err != nil {
 		panic(err)
 	}
-
+	fmt.Println("started to listen on", *addr)
 	server := grpc.NewServer()
 	pb.RegisterTestDataProviderServer(server, testServer)
 	server.Serve(listener)

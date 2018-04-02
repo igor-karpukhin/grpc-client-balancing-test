@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-gclient
+  labels:
+    app: test-gclient
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-gclient
+  template:
+    metadata:
+      labels:
+        app: test-gclient
+    spec:
+      containers:
+      - name: test-gclient
+        image: ikarpukhin/test-gclient:latest
+        ports:
+        - containerPort: 9090

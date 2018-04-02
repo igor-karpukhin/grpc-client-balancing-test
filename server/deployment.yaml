@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-gserver
+  labels:
+    app: test-gserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-gserver
+  template:
+    metadata:
+      labels:
+        app: test-gserver
+    spec:
+      containers:
+      - name: test-gserver
+        image: ikarpukhin/test-gserver:latest
+        ports:
+        - containerPort: 9090
