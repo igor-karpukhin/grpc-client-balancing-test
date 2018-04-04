@@ -1,9 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: test-gclient
+  name: test-gclient-deployment
   labels:
     app: test-gclient
+    service: test-gclient
 spec:
   replicas: 1
   selector:

@@ -12,10 +12,18 @@ proto:
 	protoc --go_out=plugins=grpc:${GOPATH}/src grpc/*.proto
 
 server:
+ifndef TGT_LINUX
 	cd server && go build -o ${TSERVER} *.go
+else
+	cd server && GOOS=linux go build -o ${TSERVER} *.go
+endif
 
 client:
+ifndef TGT_LINUX
 	cd client && go build -o ${TCLIENT} *.go
+else
+	cd client && GOOS=linux go build -o ${TCLIENT} *.go
+endif
 
 clean:
 	rm -rf server/${TSERVER} client/${TCLIENT}

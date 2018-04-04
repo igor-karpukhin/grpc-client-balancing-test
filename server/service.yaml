@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-gserver
+  labels:
+    run: test-gserver
+spec:
+  selector:
+    app: test-gserver
+  ports:
+  - port: 9090
+    protocol: TCP
+  selector:
+    run: test-gserver
+  type: LoadBalancer

@@ -29,7 +29,7 @@ func main() {
 		},
 	}
 
-	addr := flag.String("addr", "127.0.0.1:9090", "Bind addr")
+	addr := flag.String("addr", "0.0.0.0:9090", "Bind addr")
 	flag.Parse()
 
 	listener, err := net.Listen("tcp", *addr)

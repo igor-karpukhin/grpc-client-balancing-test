@@ -1,9 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: test-gserver
+  name: test-gserver-deployment
   labels:
     app: test-gserver
+    services: test-gserver
 spec:
   replicas: 1
   selector:
