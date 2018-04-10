@@ -12,24 +12,50 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"google.golang.org/grpc/naming"
 )
 
 func main() {
+
 	addr := flag.String("addr", "0.0.0.0:9090", "Server addr")
+	isDns := flag.Bool("dns", false, "Server addr")
 
 	flag.Parse()
 
-	conn, err := grpc.Dial(*addr, grpc.WithInsecure())
-	if err != nil {
-		panic(err)
+	var conn *grpc.ClientConn = nil
+
+	if *isDns{
+
+		fmt.Println("using DNS...")
+		resolver, e := naming.NewDNSResolver()
+		if e != nil {
+			panic(e)
+		}
+
+		balancer := grpc.WithBalancer(grpc.RoundRobin(resolver))
+		clientConn, err := grpc.Dial(*addr, grpc.WithInsecure(), balancer)
+		if err != nil {
+			panic(err)
+		}
+
+		conn = clientConn
+	} else {
+
+		fmt.Println("using target...")
+		clientConn, err := grpc.Dial(*addr, grpc.WithInsecure())
+		if err != nil {
+			panic(err)
+		}
+
+		conn = clientConn
 	}
 
-	rand.Seed(int64(time.Now().Second()))
+	//rand.Seed(int64(time.Now().Second()))
 	client := pb.NewTestDataProviderClient(conn)
+
 	fmt.Println(fmt.Sprintf("connected to [%s]... ", *addr))
 
 	sig := make(chan os.Signal)
-
 	signal.Notify(sig, syscall.SIGABRT, syscall.SIGTERM, syscall.SIGHUP)
 
 	for {
@@ -44,7 +70,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println("Response received", resp.ID)
+			fmt.Println("Response received", resp.ID, resp.IPAddr)
 		}
 	}
 	fmt.Println(*addr)

@@ -20,7 +20,9 @@ spec:
       - name: test-gclient
         env:
         - name: ADDR
-          value: test-gserver:9090
+          value: test-gserver-headless:9090
+        - name: DNS
+          value: "true"
         image: albertocsm/test-gclient:latest
         ports:
         - containerPort: 9090

@@ -50,4 +50,10 @@ docker-publish-client:
 docker-publish-server:
 	docker push albertocsm/${TSERVER}
 
+docker-publish: docker-publish-server docker-publish-client
+
 publish-client: client docker-client docker-tag-client docker-publish-client
+
+publish-server: client docker-server docker-tag-server docker-publish-server
+
+publish: publish-client publish-server
