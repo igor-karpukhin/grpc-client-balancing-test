@@ -11,31 +11,43 @@ build: client server
 proto:
 	protoc --go_out=plugins=grpc:${GOPATH}/src grpc/*.proto
 
+clean:
+	rm -rf server/${TSERVER} client/${TCLIENT}
+
 server:
 ifndef TGT_LINUX
-	cd server && go build -o ${TSERVER} *.go
+	cd server && CGO_ENABLED=0 go build -o ${TSERVER} *.go
 else
-	cd server && GOOS=linux go build -o ${TSERVER} *.go
+	cd server && CGO_ENABLED=0 GOOS=linux go build -o ${TSERVER} *.go
 endif
 
 client:
 ifndef TGT_LINUX
-	cd client && go build -o ${TCLIENT} *.go
+	cd client && CGO_ENABLED=0 go build -o ${TCLIENT} *.go
 else
-	cd client && GOOS=linux go build -o ${TCLIENT} *.go
+	cd client && CGO_ENABLED=0 GOOS=linux go build -o ${TCLIENT} *.go
 endif
 
-clean:
-	rm -rf server/${TSERVER} client/${TCLIENT}
-
-docker:
+docker-client:
 	cd client && docker build --tag=${TCLIENT} .
+
+docker-server:
 	cd server && docker build --tag=${TSERVER} .
 
-docker-tag:
-	docker tag ${TSERVER} ikarpukhin/${TSERVER}
-	docker tag ${TCLIENT} ikarpukhin/${TCLIENT}
+docker: docker-client docker-server
 
-docker-publish:
-	docker push ikarpukhin/${TSERVER}
-	docker push ikarpukhin/${TCLIENT}
+docker-tag-client:
+	docker tag ${TCLIENT} albertocsm/${TCLIENT}
+
+docker-tag-server:
+	docker tag ${TSERVER} albertocsm/${TSERVER}
+
+docker-tag: docker-tag-client docker-tag-server
+
+docker-publish-client:
+	docker push albertocsm/${TCLIENT}
+
+docker-publish-server:
+	docker push albertocsm/${TSERVER}
+
+publish-client: client docker-client docker-tag-client docker-publish-client

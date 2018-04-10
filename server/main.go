@@ -4,10 +4,10 @@ import (
 	"flag"
 	"net"
 
-	pb "github.com/igor-karpukhin/grpc-client-balancing-test/grpc"
-	"google.golang.org/grpc"
 	"context"
 	"fmt"
+	pb "github.com/albertocsm/grpc-client-balancing-test/grpc"
+	"google.golang.org/grpc"
 )
 
 type TestServer struct {
@@ -23,7 +23,7 @@ func main() {
 
 	testServer := &TestServer{
 		Data: &pb.TestResponse{
-			ID: 1,
+			ID:      1,
 			IntData: 100,
 			StrData: "SomeData",
 		},

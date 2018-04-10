@@ -1,10 +1,9 @@
 FROM alpine:latest
-MAINTAINER IgorKarpukhin
 
 RUN apk --no-cache add curl
 
 COPY ./test-gclient /usr/local/bin
+COPY ./docker-entrypoint.sh /
 
-WORKDIR /usr/local/bin
-
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["test-gclient"]

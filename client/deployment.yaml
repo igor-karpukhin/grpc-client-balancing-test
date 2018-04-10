@@ -1,6 +1,7 @@
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
+  namespace: dev1
   name: test-gclient-deployment
   labels:
     app: test-gclient
@@ -17,6 +18,9 @@ spec:
     spec:
       containers:
       - name: test-gclient
-        image: ikarpukhin/test-gclient:latest
+        env:
+        - name: ADDR
+          value: test-gserver:9090
+        image: albertocsm/test-gclient:latest
         ports:
         - containerPort: 9090

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/igor-karpukhin/grpc-client-balancing-test/grpc";
+option go_package = "github.com/albertocsm/grpc-client-balancing-test/grpc";
 
 message TestResponse {
 	string StrData = 1;

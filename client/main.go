@@ -4,18 +4,18 @@ import (
 	"flag"
 	"fmt"
 
-	pb "github.com/igor-karpukhin/grpc-client-balancing-test/grpc"
-	"google.golang.org/grpc"
 	"context"
+	pb "github.com/albertocsm/grpc-client-balancing-test/grpc"
+	"google.golang.org/grpc"
+	"math/rand"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-	"math/rand"
 )
 
 func main() {
-	addr := flag.String("addr", "test-gserver:9090", "Server addr")
+	addr := flag.String("addr", "0.0.0.0:9090", "Server addr")
 
 	flag.Parse()
 
@@ -26,6 +26,7 @@ func main() {
 
 	rand.Seed(int64(time.Now().Second()))
 	client := pb.NewTestDataProviderClient(conn)
+	fmt.Println(fmt.Sprintf("connected to [%s]... ", *addr))
 
 	sig := make(chan os.Signal)
 
@@ -34,10 +35,12 @@ func main() {
 	for {
 		select {
 		case s := <-sig:
+
 			fmt.Println("signal received: ", s)
-		case <-time.After(1 * time.Second):
+		case _ = <-time.After(1 * time.Second):
+
 			fmt.Println("request sent...")
-			resp, err := client.GetTestData(context.Background(), &pb.TestRequest{ID: int32(rand.Int())})
+			resp, err := client.GetTestData(context.TODO(), &pb.TestRequest{ID: int32(rand.Int())})
 			if err != nil {
 				panic(err)
 			}
