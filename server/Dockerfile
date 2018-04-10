@@ -1,5 +1,4 @@
 FROM alpine:latest
-MAINTAINER IgorKarpukhin
 
 RUN apk --no-cache add curl
 

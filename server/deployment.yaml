@@ -19,5 +19,6 @@ spec:
       containers:
       - name: test-gserver
         image: albertocsm/test-gserver:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 9090
