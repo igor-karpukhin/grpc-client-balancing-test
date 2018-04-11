@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"net"
 
 	"context"
@@ -13,6 +12,7 @@ import (
 	"github.com/travelaudience/go-metrics"
 	"net/http"
 	"time"
+	"flag"
 )
 
 type TestServer struct {
@@ -29,7 +29,7 @@ func (ts *TestServer) GetTestData(ctx context.Context, req *pb.TestRequest) (*pb
 		ts.countOperationTime("GetTestData", "GetTestData", dt)
 	}()
 
-	fmt.Println("Request ID:", req.GetID())
+	//fmt.Println("Request ID:", req.GetID())
 	ts.Data.ID = req.GetID()
 	return ts.Data, nil
 }
@@ -37,6 +37,23 @@ func (ts *TestServer) GetTestData(ctx context.Context, req *pb.TestRequest) (*pb
 func (ts *TestServer) countOperationTime(funcName string, operation string, dt time.Duration) {
 	ts.Ops.WithLabelValues(funcName, operation).Inc()
 	ts.OpsDuration.WithLabelValues(funcName, operation).Observe(dt.Seconds())
+}
+
+func initMetrics() (*prometheus.CounterVec, *prometheus.HistogramVec) {
+
+	machineName, err := os.Hostname()
+	if err != nil {
+		panic(err)
+	}
+	metricsCollector := metrics.NewMetricCollector(
+		prometheus.NewRegistry(),
+		"travelaudience",
+		prometheus.Labels{"server": machineName})
+	http.Handle("/metrics", metricsCollector.Handler())
+	metricsSystem := metricsCollector.NewSubsystem("gserver")
+	go http.ListenAndServe("0.0.0.0:8081", nil)
+	opsCounter, opsHist := newDurationMetric(metricsSystem, "operations", "function", "op")
+	return opsCounter, opsHist
 }
 
 func newDurationMetric(
@@ -57,7 +74,7 @@ func getLocalIP() string {
 		return ""
 	}
 	for _, address := range addrs {
-		// check the address type and if it is not a loopback the display it
+		// want to disregard loopback
 		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 			if ipnet.IP.To4() != nil {
 				return ipnet.IP.String()
@@ -69,19 +86,10 @@ func getLocalIP() string {
 
 func main() {
 
-	machineName, err := os.Hostname()
-	if err != nil {
-		panic(err)
-	}
-	metricsCollector := metrics.NewMetricCollector(
-		prometheus.NewRegistry(),
-		"travelaudience",
-		prometheus.Labels{"server": machineName})
-	http.Handle("/metrics", metricsCollector.Handler())
-	metricsSystem := metricsCollector.NewSubsystem("gserver")
-	go http.ListenAndServe("0.0.0.0:8081", nil)
+	addr := flag.String("addr", "0.0.0.0:9090", "Bind addr")
+	flag.Parse()
 
-	opsCounter, opsHist := newDurationMetric(metricsSystem, "operations", "function", "op")
+	opsCounter, opsHist := initMetrics()
 	testServer := &TestServer{
 		&pb.TestResponse{
 			ID:      1,
@@ -92,9 +100,6 @@ func main() {
 		opsCounter,
 		opsHist,
 	}
-
-	addr := flag.String("addr", "0.0.0.0:9090", "Bind addr")
-	flag.Parse()
 
 	listener, err := net.Listen("tcp", *addr)
 	if err != nil {

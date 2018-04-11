@@ -24,6 +24,8 @@ spec:
           value: test-gserver-headless:9090
         - name: DNS
           value: "true"
+        - name: FREQUENCY
+          value: "1"
         image: albertocsm/test-gclient:latest
         ports:
         - containerPort: 9090
