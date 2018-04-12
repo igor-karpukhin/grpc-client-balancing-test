@@ -15,7 +15,18 @@ spec:
     metadata:
       labels:
         app: test-gclient
+        type: grpc-test-app
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: type
+                operator: In
+                values:
+                - grpc-test-app
+            topologyKey: kubernetes.io/hostname
       containers:
       - name: test-gclient
         imagePullPolicy: Always

@@ -22,7 +22,7 @@ func initConnection(isDns *bool, addr *string) *grpc.ClientConn {
 	if *isDns {
 
 		fmt.Println("using DNS...")
-		resolver, e := naming.NewDNSResolverWithFreq(time.Second * time.Duration(5))
+		resolver, e := naming.NewDNSResolverWithFreq(time.Second * time.Duration(30))
 		//resolver, e := naming.NewDNSResolver()
 		if e != nil {
 			panic(e)
@@ -81,7 +81,7 @@ func countOperationTime(opsCounter *prometheus.CounterVec, opsHist *prometheus.H
 	opsHist.WithLabelValues(funcName, operation).Observe(dt.Seconds())
 }
 
-func makeRequest(client pb.TestDataProviderClient, opsCounter *prometheus.CounterVec, opsHist *prometheus.HistogramVec) {
+func makeRequest(client pb.TestDataProviderClient, opsCounter *prometheus.CounterVec, opsHist *prometheus.HistogramVec) (*pb.TestResponse, error) {
 
 	t := time.Now()
 	defer func() {
@@ -89,13 +89,11 @@ func makeRequest(client pb.TestDataProviderClient, opsCounter *prometheus.Counte
 		countOperationTime(opsCounter, opsHist, "GetTestData", "GetTestData", dt)
 	}()
 
-	//resp, err := client.GetTestData(context.TODO(), &pb.TestRequest{ID: int32(rand.Int())})
-	_, err := client.GetTestData(context.TODO(), &pb.TestRequest{ID: int32(rand.Int())})
-	//fmt.Println("request sent...")
-	if err != nil {
-		panic(err)
-	}
+	//fmt.Println("Sending request...")
+	resp, err := client.GetTestData(context.TODO(), &pb.TestRequest{ID: int32(rand.Int())})
 	//fmt.Println("Response received", resp.ID, resp.IPAddr)
+
+	return resp, err
 }
 
 func main() {
@@ -116,17 +114,18 @@ func main() {
 	sig := make(chan os.Signal)
 	signal.Notify(sig, syscall.SIGABRT, syscall.SIGTERM, syscall.SIGHUP)
 
-	// need to make sure DNS resolvers has time to do its thing..
-	// prolly the connection state will let me do this in a smarter way
-	time.Sleep(10 * time.Second)
-
 	// all done and ready to start pounding the server
 	for {
 		select {
 		case s := <-sig:
 			fmt.Println("signal received: ", s)
 		case _ = <-time.After(time.Duration(*frequency) * time.Millisecond):
-			makeRequest(client, opsCounter, opsHist)
+			_, err := makeRequest(client, opsCounter, opsHist)
+			if err != nil {
+				fmt.Println(err)
+				// want to back-off for a moment
+				time.Sleep(1 * time.Second)
+			}
 		}
 	}
 	fmt.Println(*addr)

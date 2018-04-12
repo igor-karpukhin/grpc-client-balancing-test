@@ -15,7 +15,20 @@ spec:
     metadata:
       labels:
         app: test-gserver
+        type: grpc-test-app
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: type
+                operator: In
+                values:
+                - grpc-test-app
+            topologyKey: kubernetes.io/hostname
+      nodeSelector:
+        beta.kubernetes.io/instance-type: n1-highcpu-8
       containers:
       - name: test-gserver
         image: albertocsm/test-gserver:latest
