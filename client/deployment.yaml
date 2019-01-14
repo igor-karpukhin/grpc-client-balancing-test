@@ -1,6 +1,7 @@
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
+  namespace: dev1
   name: test-gclient-deployment
   labels:
     app: test-gclient
@@ -14,9 +15,28 @@ spec:
     metadata:
       labels:
         app: test-gclient
+        type: grpc-test-app
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: type
+                operator: In
+                values:
+                - grpc-test-app
+            topologyKey: kubernetes.io/hostname
       containers:
       - name: test-gclient
-        image: ikarpukhin/test-gclient:latest
+        imagePullPolicy: Always
+        env:
+        - name: ADDR
+          value: test-gserver-headless:9090
+        - name: DNS
+          value: "true"
+        - name: FREQUENCY
+          value: "1"
+        image: albertocsm/test-gclient:latest
         ports:
         - containerPort: 9090
